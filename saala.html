@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرافق المسلم الشامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #f8fafc; overflow-x: hidden; }
+        .glass-card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
+        .tab-btn.active { border-bottom: 3px solid #fbbf24; color: #fbbf24; font-weight: bold; }
+        #qibla-compass { width: 200px; height: 200px; border: 4px solid #fbbf24; border-radius: 50%; position: relative; margin: 20px auto; transition: transform 0.5s ease-out; }
+        #qibla-needle { position: absolute; top: 10%; left: 50%; width: 4px; height: 40%; background: #fbbf24; transform-origin: bottom center; transform: translateX(-50%); }
+        #qibla-needle::after { content: '▲'; position: absolute; top: -15px; left: -6px; color: #fbbf24; }
+        .zekr-card { transition: all 0.3s ease; }
+        .zekr-card:active { transform: scale(0.95); background: #1e293b; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+        <nav class="flex justify-around mb-8 border-b border-gray-700 pb-2 overflow-x-auto">
+            <button onclick="showTab('prayer')" class="tab-btn active px-4 py-2 transition" id="tab-prayer">المواقيت</button>
+            <button onclick="showTab('qibla')" class="tab-btn px-4 py-2 transition" id="tab-qibla">القبلة</button>
+            <button onclick="showTab('azkar')" class="tab-btn px-4 py-2 transition" id="tab-azkar">الأذكار</button>
+            <button onclick="showTab('quran')" class="tab-btn px-4 py-2 transition" id="tab-quran">القرآن</button>
+        </nav>
+
+        <main>
+            <section id="section-prayer" class="tab-content block animate-fade-in">
+                <div class="glass-card p-4">
+                    <iframe id="iframe3" src="https://timesprayer.today/widget_frame.php?frame=3&id=355&sound=false" 
+                        style="width: 100%; height: 363px; filter: invert(90%) hue-rotate(180deg);"></iframe>
+                </div>
+            </section>
+
+            <section id="section-qibla" class="tab-content hidden text-center">
+                <div class="glass-card p-8">
+                    <h2 class="text-xl font-bold mb-4">بوصلة القبلة</h2>
+                    <p class="text-sm text-gray-400 mb-4">يرجى السماح بالوصول للموقع للحصول على اتجاه دقيق</p>
+                    <div id="qibla-compass">
+                        <div id="qibla-needle"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-xs text-gray-500">مكة</div>
+                    </div>
+                    <button onclick="getLocation()" class="mt-4 px-6 py-2 bg-yellow-600 rounded-full text-sm">تحديث الموقع</button>
+                </div>
+            </section>
+
+            <section id="section-azkar" class="tab-content hidden">
+                <div class="space-y-4">
+                    <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
+                        <div>
+                            <p class="text-lg">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</p>
+                            <p class="text-xs text-gray-500">100 مرة</p>
+                        </div>
+                        <span class="text-2xl font-bold text-yellow-500 counter">0</span>
+                    </div>
+                    <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
+                        <div>
+                            <p class="text-lg">أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ</p>
+                            <p class="text-xs text-gray-500">مفتوح</p>
+                        </div>
+                        <span class="text-2xl font-bold text-yellow-500 counter">0</span>
+                    </div>
+                    <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
+                        <div>
+                            <p class="text-lg">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ</p>
+                            <p class="text-xs text-gray-500">10 مرات</p>
+                        </div>
+                        <span class="text-2xl font-bold text-yellow-500 counter">0</span>
+                    </div>
+                </div>
+                <button onclick="resetCounters()" class="w-full mt-6 py-2 text-gray-500 text-sm">تصفير العدادات</button>
+            </section>
+
+            <section id="section-quran" class="tab-content hidden h-[600px]">
+                <iframe src="https://quran.com" class="w-full h-full rounded-3xl"></iframe>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function showTab(name) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('section-' + name).classList.remove('hidden');
+            document.getElementById('tab-' + name).classList.add('active');
+            if(name === 'qibla') getLocation();
+        }
+
+        // عداد الأذكار
+        function count(el) {
+            let c = el.querySelector('.counter');
+            c.innerText = parseInt(c.innerText) + 1;
+            if(navigator.vibrate) navigator.vibrate(40);
+        }
+
+        function resetCounters() {
+            document.querySelectorAll('.counter').forEach(c => c.innerText = 0);
+        }
+
+        // حساب القبلة
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    calculateQibla(latitude, longitude);
+                });
+            }
+        }
+
+        function calculateQibla(lat, lng) {
+            const makkahLat = 21.4225, makkahLng = 39.8262;
+            const y = Math.sin(toRadians(makkahLng - lng));
+            const x = Math.cos(toRadians(lat)) * Math.tan(toRadians(makkahLat)) - Math.sin(toRadians(lat)) * Math.cos(toRadians(makkahLng - lng));
+            let qibla = toDegrees(Math.atan2(y, x));
+            document.getElementById('qibla-needle').style.transform = `translateX(-50%) rotate(${qibla}deg)`;
+        }
+
+        const toRadians = deg => deg * (Math.PI / 180);
+        const toDegrees = rad => rad * (180 / Math.PI);
+
+        // الوقت والتاريخ
+        document.getElementById('date-display').innerText = new Intl.DateTimeFormat('ar-JO', { dateStyle: 'full' }).format(new Date());
+
+        // نظام المواقيت البسيط للتجربة
+        async function updatePrayers() {
+            const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Amman&country=Jordan&method=4');
+            const data = await res.json();
+            const t = data.data.timings;
+            // يمكنك هنا ربط العداد التنازلي كما فعلنا سابقاً
+            document.getElementById('next-prayer-name').innerText = "العشاء"; // مثال
+        }
+        updatePrayers();
+    </script>
+</body>
+</html>
