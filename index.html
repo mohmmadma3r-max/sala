@@ -10,14 +10,25 @@
         body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #f8fafc; overflow-x: hidden; }
         .glass-card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
         .tab-btn.active { border-bottom: 3px solid #fbbf24; color: #fbbf24; font-weight: bold; }
-        #qibla-compass { width: 200px; height: 200px; border: 4px solid #fbbf24; border-radius: 50%; position: relative; margin: 20px auto; transition: transform 0.5s ease-out; }
-        #qibla-needle { position: absolute; top: 10%; left: 50%; width: 4px; height: 40%; background: #fbbf24; transform-origin: bottom center; transform: translateX(-50%); }
-        #qibla-needle::after { content: '▲'; position: absolute; top: -15px; left: -6px; color: #fbbf24; }
-        .zekr-card { transition: all 0.3s ease; }
+        #qibla-compass { width: 220px; height: 220px; border: 4px solid #334155; border-radius: 50%; position: relative; margin: 20px auto; background: rgba(30, 41, 59, 0.5); box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+        #qibla-needle { position: absolute; top: 10%; left: 50%; width: 6px; height: 40%; background: #fbbf24; transform-origin: bottom center; transform: translateX(-50%) rotate(0deg); transition: transform 0.3s ease-out; z-index: 10; border-radius: 10px; }
+        #qibla-needle::after { content: '▲'; position: absolute; top: -18px; left: -6px; color: #fbbf24; font-size: 18px; }
+        .compass-mark { position: absolute; width: 100%; height: 100%; top: 0; left: 0; text-align: center; font-size: 12px; color: #64748b; padding-top: 5px; }
+        .zekr-card { transition: all 0.3s ease; cursor: pointer; }
         .zekr-card:active { transform: scale(0.95); background: #1e293b; }
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-yellow-500 mb-2">مرافق المسلم 🌙</h1>
+            <p id="date-display" class="text-gray-400 text-sm mb-4"></p>
+            
+            <button id="notif-setup-btn" onclick="setupNotifications()" class="px-6 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-full text-white text-sm font-bold shadow-lg transition-all">
+                تفعيل تنبيهات الأذان 🔔
+            </button>
+        </header>
 
         <nav class="flex justify-around mb-8 border-b border-gray-700 pb-2 overflow-x-auto">
             <button onclick="showTab('prayer')" class="tab-btn active px-4 py-2 transition" id="tab-prayer">المواقيت</button>
@@ -30,108 +41,140 @@
             <section id="section-prayer" class="tab-content block animate-fade-in">
                 <div class="glass-card p-4">
                     <iframe id="iframe3" src="https://timesprayer.today/widget_frame.php?frame=3&id=355&sound=false" 
-                        style="width: 100%; height: 363px; filter: invert(90%) hue-rotate(180deg);"></iframe>
+                        style="width: 100%; height: 363px; border:none; filter: invert(90%) hue-rotate(180deg);"></iframe>
                 </div>
             </section>
 
             <section id="section-qibla" class="tab-content hidden text-center">
                 <div class="glass-card p-8">
-                    <h2 class="text-xl font-bold mb-4">بوصلة القبلة</h2>
-                    <p class="text-sm text-gray-400 mb-4">يرجى السماح بالوصول للموقع للحصول على اتجاه دقيق</p>
+                    <h2 class="text-xl font-bold mb-2 text-yellow-500">بوصلة القبلة الذكية</h2>
+                    <p id="qibla-status" class="text-sm text-gray-400 mb-4">اضغط الزر أدناه ثم حرك الهاتف بشكل دائري</p>
                     <div id="qibla-compass">
+                        <div class="compass-mark">الشمال</div>
                         <div id="qibla-needle"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-xs text-gray-500">مكة</div>
+                        <div class="absolute inset-0 flex items-center justify-center text-xs text-gray-500 font-bold mt-20">مكة المكرمة</div>
                     </div>
-                    <button onclick="getLocation()" class="mt-4 px-6 py-2 bg-yellow-600 rounded-full text-sm">تحديث الموقع</button>
+                    <button onclick="activateCompass()" class="mt-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-full text-white font-bold transition-all shadow-lg">تفعيل المستشعرات 🧭</button>
                 </div>
             </section>
 
             <section id="section-azkar" class="tab-content hidden">
-                <div class="space-y-4">
+                <div class="grid gap-4">
                     <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
-                        <div>
-                            <p class="text-lg">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</p>
-                            <p class="text-xs text-gray-500">100 مرة</p>
-                        </div>
+                        <div><p class="text-lg">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</p><p class="text-xs text-gray-500">100 مرة</p></div>
                         <span class="text-2xl font-bold text-yellow-500 counter">0</span>
                     </div>
                     <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
-                        <div>
-                            <p class="text-lg">أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ</p>
-                            <p class="text-xs text-gray-500">مفتوح</p>
-                        </div>
-                        <span class="text-2xl font-bold text-yellow-500 counter">0</span>
-                    </div>
-                    <div class="zekr-card glass-card p-6 flex justify-between items-center" onclick="count(this)">
-                        <div>
-                            <p class="text-lg">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ</p>
-                            <p class="text-xs text-gray-500">10 مرات</p>
-                        </div>
+                        <div><p class="text-lg">أَسْتَغْفِرُ اللَّهَ</p><p class="text-xs text-gray-500">مفتوح</p></div>
                         <span class="text-2xl font-bold text-yellow-500 counter">0</span>
                     </div>
                 </div>
-                <button onclick="resetCounters()" class="w-full mt-6 py-2 text-gray-500 text-sm">تصفير العدادات</button>
+                <button onclick="resetCounters()" class="w-full mt-6 py-2 text-gray-500 text-sm hover:text-white transition">تصفير العدادات</button>
             </section>
 
-            <section id="section-quran" class="tab-content hidden h-[600px]">
-                <iframe src="https://quran.com" class="w-full h-full rounded-3xl"></iframe>
+            <section id="section-quran" class="tab-content hidden h-[650px]">
+                <div class="glass-card p-2 h-full overflow-hidden shadow-2xl">
+                    <iframe src="https://quran.com" class="w-full h-full rounded-2xl" style="filter: none;"></iframe>
+                </div>
             </section>
         </main>
     </div>
 
+    <audio id="adhan-audio" src="https://www.islamcan.com/common/adhan/adhan1.mp3"></audio>
+
     <script>
+        let prayerTimings = {};
+        let userQiblaAngle = 0;
+
+        // 1. نظام الإشعارات والمواقيت
+        async function setupNotifications() {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                document.getElementById('notif-setup-btn').innerText = "التنبيهات مفعلة ✅";
+                document.getElementById('notif-setup-btn').classList.replace('bg-yellow-600', 'bg-green-700');
+                fetchPrayers();
+            } else {
+                alert("يرجى السماح بالإشعارات لتنبيهك بوقت الصلاة.");
+            }
+        }
+
+        async function fetchPrayers() {
+            const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Amman&country=Jordan&method=4');
+            const data = await res.json();
+            prayerTimings = data.data.timings;
+            checkPrayerTime();
+            setInterval(checkPrayerTime, 60000); // فحص كل دقيقة
+        }
+
+        function checkPrayerTime() {
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const prayers = { "الفجر": prayerTimings.Fajr, "الظهر": prayerTimings.Dhuhr, "العصر": prayerTimings.Asr, "المغرب": prayerTimings.Maghrib, "العشاء": prayerTimings.Isha };
+
+            for (const [name, time] of Object.entries(prayers)) {
+                if (currentTime === time) {
+                    sendNotif(name);
+                }
+            }
+        }
+
+        function sendNotif(name) {
+            new Notification("حان وقت الصلاة", { body: `موعد أذان ${name} بتوقيت الأردن`, icon: "https://cdn-icons-png.flaticon.com/512/2665/2665038.png" });
+            document.getElementById('adhan-audio').play().catch(() => console.log("تفاعل مع الصفحة لتفعيل الصوت"));
+        }
+
+        // 2. نظام البوصلة (القبلة)
+        function toRadians(deg) { return deg * (Math.PI / 180); }
+        function toDegrees(rad) { return rad * (180 / Math.PI); }
+        function calculateQibla(lat, lng) {
+            const makkahLat = 21.4225, makkahLng = 39.8262;
+            const y = Math.sin(toRadians(makkahLng - lng));
+            const x = Math.cos(toRadians(lat)) * Math.tan(toRadians(makkahLat)) - Math.sin(toRadians(lat)) * Math.cos(toRadians(makkahLng - lng));
+            return toDegrees(Math.atan2(y, x));
+        }
+
+        async function activateCompass() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    userQiblaAngle = calculateQibla(position.coords.latitude, position.coords.longitude);
+                    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission().then(state => { if (state === 'granted') startCompassListener(); });
+                    } else { startCompassListener(); }
+                });
+            }
+        }
+
+        function startCompassListener() {
+            window.addEventListener('deviceorientationabsolute', (e) => {
+                let heading = e.webkitCompassHeading || (360 - e.alpha);
+                if (heading) {
+                    const rotation = userQiblaAngle - heading;
+                    document.getElementById('qibla-needle').style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                    document.getElementById('qibla-status').innerText = "البوصلة تعمل.. وجه الهاتف";
+                }
+            }, true);
+        }
+
+        // 3. التبويبات والعدادات
         function showTab(name) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('section-' + name).classList.remove('hidden');
             document.getElementById('tab-' + name).classList.add('active');
-            if(name === 'qibla') getLocation();
         }
 
-        // عداد الأذكار
         function count(el) {
             let c = el.querySelector('.counter');
             c.innerText = parseInt(c.innerText) + 1;
             if(navigator.vibrate) navigator.vibrate(40);
         }
 
-        function resetCounters() {
-            document.querySelectorAll('.counter').forEach(c => c.innerText = 0);
-        }
+        function resetCounters() { document.querySelectorAll('.counter').forEach(c => c.innerText = 0); }
 
-        // حساب القبلة
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const { latitude, longitude } = position.coords;
-                    calculateQibla(latitude, longitude);
-                });
-            }
-        }
-
-        function calculateQibla(lat, lng) {
-            const makkahLat = 21.4225, makkahLng = 39.8262;
-            const y = Math.sin(toRadians(makkahLng - lng));
-            const x = Math.cos(toRadians(lat)) * Math.tan(toRadians(makkahLat)) - Math.sin(toRadians(lat)) * Math.cos(toRadians(makkahLng - lng));
-            let qibla = toDegrees(Math.atan2(y, x));
-            document.getElementById('qibla-needle').style.transform = `translateX(-50%) rotate(${qibla}deg)`;
-        }
-
-        const toRadians = deg => deg * (Math.PI / 180);
-        const toDegrees = rad => rad * (180 / Math.PI);
-
-        // الوقت والتاريخ
         document.getElementById('date-display').innerText = new Intl.DateTimeFormat('ar-JO', { dateStyle: 'full' }).format(new Date());
 
-        // نظام المواقيت البسيط للتجربة
-        async function updatePrayers() {
-            const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Amman&country=Jordan&method=4');
-            const data = await res.json();
-            const t = data.data.timings;
-            // يمكنك هنا ربط العداد التنازلي كما فعلنا سابقاً
-            document.getElementById('next-prayer-name').innerText = "العشاء"; // مثال
-        }
-        updatePrayers();
+        // التحقق التلقائي إذا كان الإذن ممنوحاً مسبقاً
+        if (Notification.permission === 'granted') fetchPrayers();
     </script>
 </body>
 </html>
